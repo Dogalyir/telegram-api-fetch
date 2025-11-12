@@ -68,8 +68,8 @@ await bot.sendMessage({
   reply_markup: {
     inline_keyboard: [
       [
-        { text: 'Option 1', callback_data: 'opt_1' },
-        { text: 'Option 2', callback_data: 'opt_2' }
+        { text: '👍 Option 1', callback_data: 'opt_1' },
+        { text: '👎 Option 2', callback_data: 'opt_2' }
       ]
     ]
   }
@@ -149,15 +149,65 @@ app.post('/webhook', async (req, res) => {
     })
   }
 
-  // Handle callback queries
+  // Handle callback queries from inline keyboard buttons
   if (update.callback_query) {
-    const data = update.callback_query.data
-    console.log('Callback data:', data)
+    const query = update.callback_query
+    const data = query.data
+    const chatId = query.message?.chat.id
+    
+    if (chatId && data) {
+      await bot.sendMessage({
+        chat_id: chatId,
+        text: `You selected: ${data}`
+      })
+    }
   }
 
   res.sendStatus(200)
 })
 ```
+
+### Handling Callback Queries
+
+Callback queries are triggered when users click inline keyboard buttons:
+
+```typescript
+import { type CallbackQuery } from 'telegram-api-fetch'
+
+async function handleCallbackQuery(query: CallbackQuery) {
+  const chatId = query.message?.chat.id
+  if (!chatId || !query.data) return
+
+  // Parse callback data
+  if (query.data.startsWith('vehicle_')) {
+    const vehicleId = query.data.split('_')[1]
+    
+    await bot.sendMessage({
+      chat_id: chatId,
+      text: `🚗 Vehicle ${vehicleId} selected`,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '✅ Start Check', callback_data: `check_${vehicleId}` },
+            { text: '🔙 Back', callback_data: 'list_vehicles' }
+          ]
+        ]
+      }
+    })
+  }
+}
+
+// In your webhook handler
+if (update.callback_query) {
+  await handleCallbackQuery(update.callback_query)
+}
+```
+
+**See the complete [Callback Queries Guide](./examples/CALLBACKS.md) for:**
+- Callback data patterns and best practices
+- Multi-step workflows
+- Type-safe callback handling
+- Real-world examples based on actual use cases
 
 ## API Reference
 
@@ -259,7 +309,10 @@ All webhook types are validated using Zod schemas:
 
 Check the [`examples/`](./examples) directory for complete examples:
 
-- [`basic-bot.ts`](./examples/basic-bot.ts): Comprehensive example with all features
+- [`basic-bot.ts`](./examples/basic-bot.ts): Comprehensive bot example with all features
+- [`webhook-handler.ts`](./examples/webhook-handler.ts): Complete webhook handler with callbacks
+- [`callback-example.ts`](./examples/callback-example.ts): Advanced callback patterns and workflows
+- [`CALLBACKS.md`](./examples/CALLBACKS.md): Complete guide to callback queries
 
 ## Development
 
@@ -295,11 +348,13 @@ Currently implemented methods:
 
 ### Webhook Types
 
-- ✅ Update validation
+- ✅ Update validation with Zod schemas
 - ✅ Message types (text, photo, location)
 - ✅ User and Chat types
-- ✅ Callback queries
-- ✅ Message entities
+- ✅ Callback queries (inline keyboard buttons)
+- ✅ Message entities (mentions, hashtags, links, etc.)
+- ✅ Inline keyboards with reply_markup
+- ✅ Reply keyboards
 
 ### Coming Soon
 

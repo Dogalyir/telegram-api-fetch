@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod'
+import { InlineKeyboardMarkupSchema } from '../client/keyboards'
 
 /**
  * User object represents a Telegram user or bot
@@ -227,6 +228,7 @@ export interface Message {
 	caption_entities?: MessageEntity[]
 	photo?: PhotoSize[]
 	location?: Location
+	reply_markup?: z.infer<typeof InlineKeyboardMarkupSchema>
 }
 
 export const MessageSchema: z.ZodType<Message> = z.object({
@@ -347,6 +349,9 @@ export const MessageSchema: z.ZodType<Message> = z.object({
 		.describe('Message is a photo, available sizes of the photo'),
 	location: LocationSchema.optional().describe(
 		'Message is a shared location, information about the location',
+	),
+	reply_markup: InlineKeyboardMarkupSchema.optional().describe(
+		'Inline keyboard attached to the message',
 	),
 })
 

@@ -145,12 +145,81 @@ async function handleCallbackQuery(update: Update) {
 	if (!query?.data) return
 
 	const chatId = query.message?.chat.id
+	const messageId = query.message?.message_id
 	if (!chatId) return
 
-	console.log('Callback query:', query.data)
+	console.log('Callback query:', {
+		id: query.id,
+		data: query.data,
+		from: query.from.username || query.from.first_name,
+		chatInstance: query.chat_instance,
+	})
 
+	// Process different callback patterns
 	let responseText = ''
 
+	// Example: Vehicle selection callbacks (vehicle_1, vehicle_2, etc.)
+	if (query.data.startsWith('vehicle_')) {
+		const vehicleId = query.data.split('_')[1]
+		responseText = `🚗 Vehículo ${vehicleId} seleccionado`
+
+		// You can also edit the original message
+		// This demonstrates updating the message that contained the button
+		await bot.sendMessage({
+			chat_id: chatId,
+			text: `🚗 Vehículo TEST\n\n📋 Número interno: ${vehicleId}\n✅ Estado: Activo`,
+			reply_markup: {
+				inline_keyboard: [
+					[
+						{
+							text: '✅ Realizar chequeo preoperacional',
+							callback_data: `check_${vehicleId}`,
+						},
+					],
+					[
+						{
+							text: '🔙 Volver a vehículos',
+							callback_data: 'list_vehicles',
+						},
+					],
+				],
+			},
+		})
+		return
+	}
+
+	// Example: Check operation callbacks (check_1, check_2, etc.)
+	if (query.data.startsWith('check_')) {
+		const vehicleId = query.data.split('_')[1]
+		responseText = `✅ Iniciando chequeo preoperacional para vehículo ${vehicleId}...`
+
+		await bot.sendMessage({
+			chat_id: chatId,
+			text: responseText,
+		})
+		return
+	}
+
+	// Example: List vehicles callback
+	if (query.data === 'list_vehicles') {
+		await bot.sendMessage({
+			chat_id: chatId,
+			text: '🚗 Tus vehículos asignados (1):',
+			reply_markup: {
+				inline_keyboard: [
+					[
+						{
+							text: '🚗 TEST - 001',
+							callback_data: 'vehicle_1',
+						},
+					],
+				],
+			},
+		})
+		return
+	}
+
+	// Standard callback examples
 	switch (query.data) {
 		case 'like':
 			responseText = '¡Me alegra que te guste! 👍'
@@ -160,16 +229,29 @@ async function handleCallbackQuery(update: Update) {
 			break
 		case 'info':
 			responseText =
-				'💡 Este es un bot de ejemplo creado con telegram-api-fetch'
+				'💡 Este es un bot de ejemplo creado con telegram-api-fetch\n\n' +
+				'Características:\n' +
+				'✅ Validación con Zod\n' +
+				'✅ TypeScript completo\n' +
+				'✅ Soporte para callbacks\n' +
+				'✅ Teclados inline\n' +
+				'✅ Manejo de ubicaciones y fotos'
 			break
 		default:
-			responseText = `Recibí: ${query.data}`
+			responseText = `Recibí callback: ${query.data}`
 	}
 
 	await bot.sendMessage({
 		chat_id: chatId,
 		text: responseText,
 	})
+
+	// Optional: Answer the callback query to remove the loading state
+	// Note: This requires implementing answerCallbackQuery in the TelegramBot class
+	// await bot.answerCallbackQuery({
+	//   callback_query_id: query.id,
+	//   text: 'Procesado ✓'
+	// })
 }
 
 /**
@@ -214,10 +296,10 @@ export function createWebhookHandler() {
 			// Process the update
 			await handleUpdate(update)
 
-			;(res as { sendStatus: (status: number) => void }).sendStatus(200)
+				; (res as { sendStatus: (status: number) => void }).sendStatus(200)
 		} catch (error) {
 			console.error('Error handling webhook:', error)
-			;(res as { sendStatus: (status: number) => void }).sendStatus(500)
+				; (res as { sendStatus: (status: number) => void }).sendStatus(500)
 		}
 	}
 }
