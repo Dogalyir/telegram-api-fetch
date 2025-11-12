@@ -12,8 +12,8 @@
  */
 
 import {
-	TelegramBot,
 	type CallbackQuery,
+	TelegramBot,
 	type Update,
 	UpdateSchema,
 } from '../src'
@@ -188,14 +188,18 @@ async function routeCallback(query: CallbackQuery, chatId: number) {
 
 	// Pattern: vehicle_<id>
 	if (data.startsWith('vehicle_')) {
-		const vehicleId = parseInt(data.split('_')[1])
+		const vehicleId = parseInt(data.split('_')[1], 10)
 		await sendVehicleDetail(chatId, vehicleId)
 		return
 	}
 
 	// Pattern: check_<vehicleId>
-	if (data.startsWith('check_') && !data.includes('item') && !data.includes('complete')) {
-		const vehicleId = parseInt(data.split('_')[1])
+	if (
+		data.startsWith('check_') &&
+		!data.includes('item') &&
+		!data.includes('complete')
+	) {
+		const vehicleId = parseInt(data.split('_')[1], 10)
 		await sendChecklistStart(chatId, vehicleId)
 		return
 	}
@@ -203,20 +207,20 @@ async function routeCallback(query: CallbackQuery, chatId: number) {
 	// Pattern: check_item_<vehicleId>_<itemId>
 	if (data.startsWith('check_item_')) {
 		const [, , vehicleId, itemId] = data.split('_')
-		await handleChecklistItem(chatId, parseInt(vehicleId), itemId)
+		await handleChecklistItem(chatId, parseInt(vehicleId, 10), itemId)
 		return
 	}
 
 	// Pattern: check_complete_<vehicleId>
 	if (data.startsWith('check_complete_')) {
-		const vehicleId = parseInt(data.split('_')[2])
+		const vehicleId = parseInt(data.split('_')[2], 10)
 		await handleChecklistComplete(chatId, vehicleId)
 		return
 	}
 
 	// Pattern: history_<vehicleId>
 	if (data.startsWith('history_')) {
-		const vehicleId = parseInt(data.split('_')[1])
+		const vehicleId = parseInt(data.split('_')[1], 10)
 		await bot.sendMessage({
 			chat_id: chatId,
 			text: `📊 Historial del vehículo ${vehicleId}\n\n(Esta función está en desarrollo)`,
@@ -234,7 +238,8 @@ async function routeCallback(query: CallbackQuery, chatId: number) {
 	const simpleCallbacks: Record<string, string> = {
 		like: '¡Me alegra que te guste! 👍',
 		dislike: 'Entendido, tomaré nota 👎',
-		info: '💡 telegram-api-fetch\n\n' +
+		info:
+			'💡 telegram-api-fetch\n\n' +
 			'Biblioteca TypeScript para Telegram Bot API con:\n' +
 			'✅ Validación Zod completa\n' +
 			'✅ Tipos TypeScript autogenerados\n' +
@@ -287,7 +292,8 @@ async function handleChecklistItem(
 async function handleChecklistComplete(chatId: number, vehicleId: number) {
 	await bot.sendMessage({
 		chat_id: chatId,
-		text: `✅ Chequeo preoperacional completado para vehículo ${vehicleId}\n\n` +
+		text:
+			`✅ Chequeo preoperacional completado para vehículo ${vehicleId}\n\n` +
 			'El reporte ha sido guardado exitosamente.',
 	})
 
@@ -330,10 +336,10 @@ export function createCallbackWebhookHandler() {
 				}
 			}
 
-			; (res as { sendStatus: (status: number) => void }).sendStatus(200)
+			;(res as { sendStatus: (status: number) => void }).sendStatus(200)
 		} catch (error) {
 			console.error('Error handling webhook:', error)
-				; (res as { sendStatus: (status: number) => void }).sendStatus(500)
+			;(res as { sendStatus: (status: number) => void }).sendStatus(500)
 		}
 	}
 }
@@ -374,14 +380,14 @@ type CallbackData =
  */
 export function parseCallbackData(data: string): CallbackData | null {
 	if (data.startsWith('vehicle_')) {
-		return { type: 'vehicle', id: parseInt(data.split('_')[1]) }
+		return { type: 'vehicle', id: parseInt(data.split('_')[1], 10) }
 	}
 	if (data.startsWith('check_item_')) {
 		const [, , vehicleId, itemId] = data.split('_')
-		return { type: 'check_item', vehicleId: parseInt(vehicleId), itemId }
+		return { type: 'check_item', vehicleId: parseInt(vehicleId, 10), itemId }
 	}
 	if (data.startsWith('check_')) {
-		return { type: 'check', vehicleId: parseInt(data.split('_')[1]) }
+		return { type: 'check', vehicleId: parseInt(data.split('_')[1], 10) }
 	}
 	if (['like', 'dislike', 'info'].includes(data)) {
 		return { type: 'simple', action: data as 'like' | 'dislike' | 'info' }

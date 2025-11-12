@@ -145,7 +145,7 @@ async function handleCallbackQuery(update: Update) {
 	if (!query?.data) return
 
 	const chatId = query.message?.chat.id
-	const messageId = query.message?.message_id
+	const _messageId = query.message?.message_id
 	if (!chatId) return
 
 	console.log('Callback query:', {
@@ -296,10 +296,10 @@ export function createWebhookHandler() {
 			// Process the update
 			await handleUpdate(update)
 
-				; (res as { sendStatus: (status: number) => void }).sendStatus(200)
+			;(res as { sendStatus: (status: number) => void }).sendStatus(200)
 		} catch (error) {
 			console.error('Error handling webhook:', error)
-				; (res as { sendStatus: (status: number) => void }).sendStatus(500)
+			;(res as { sendStatus: (status: number) => void }).sendStatus(500)
 		}
 	}
 }
