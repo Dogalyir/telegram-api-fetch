@@ -1,6 +1,6 @@
 {
 	"name": "telegram-api-fetch",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "TypeScript type definitions and client for the Telegram Bot API using Zod schemas",
 	"homepage": "https://github.com/Dogalyir/telegram-api-fetch#readme",
 	"bugs": {
