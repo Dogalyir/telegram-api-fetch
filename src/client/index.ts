@@ -180,6 +180,29 @@ export interface SendMessageResponse {
 }
 
 /**
+ * DeleteMessage method parameters
+ */
+export interface DeleteMessageParams extends Record<string, unknown> {
+	/**
+	 * Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+	 */
+	chat_id: number | string
+
+	/**
+	 * Identifier of the message to delete
+	 */
+	message_id: number
+}
+
+/**
+ * DeleteMessage response
+ */
+export interface DeleteMessageResponse {
+	ok: true
+	result: boolean
+}
+
+/**
  * SendPhoto method parameters
  */
 export interface SendPhotoParams extends Record<string, unknown> {
@@ -530,6 +553,39 @@ export class TelegramBot {
 	 */
 	updateBotToken(newBotToken: string): void {
 		this.config.botToken = newBotToken
+	}
+
+	/**
+	 * Delete a message
+	 * Use this method to delete a message, including service messages, with the following limitations:
+	 * - A message can only be deleted if it was sent less than 48 hours ago
+	 * - A dice message in a private chat can only be deleted if it was sent more than 24 hours ago
+	 * - Bots can delete outgoing messages in private chats, groups, and supergroups
+	 * - Bots can delete incoming messages in private chats
+	 * - Bots granted can_post_messages permissions can delete outgoing messages in channels
+	 * - If the bot is an administrator of a group, it can delete any message there
+	 * - If the bot has can_delete_messages permission in a supergroup or a channel, it can delete any message there
+	 *
+	 * @param params - Delete message parameters
+	 * @returns Promise with the result (true on success)
+	 *
+	 * @example
+	 * ```typescript
+	 * // Delete a message
+	 * await bot.deleteMessage({
+	 *   chat_id: 123456789,
+	 *   message_id: 456
+	 * })
+	 *
+	 * // Delete a message from a channel
+	 * await bot.deleteMessage({
+	 *   chat_id: '@mychannel',
+	 *   message_id: 789
+	 * })
+	 * ```
+	 */
+	async deleteMessage(params: DeleteMessageParams): Promise<boolean> {
+		return await this.request<boolean>('deleteMessage', params)
 	}
 
 	/**
